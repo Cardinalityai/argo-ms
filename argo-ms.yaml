@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ms1
-        image: prasad0089/ms1:1
+        image: prasad0089/ms1:2
         ports:
         - containerPort: 5000
   strategy:
@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: ms2
-        image: prasad0089/ms2:1
+        image: prasad0089/ms2:2
         ports:
         - containerPort: 5000
   strategy:
