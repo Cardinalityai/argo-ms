@@ -15,16 +15,14 @@ spec:
     spec:
       containers:
       - name: ms1
-        image: prasad0089/ms1:2
+        image: prasad0089/ms1:1
         ports:
         - containerPort: 5000
   strategy:
-    canary:
-      steps:
-      - setWeight: 33
-      - pause: {duration: 1m}
-      - setWeight: 66
-      - pause: {duration: 1m}
+    blueGreen:
+      activeService: ms1-service-live
+      previewService: ms1-service-preview
+      autoPromotionEnabled: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -42,16 +40,15 @@ spec:
     spec:
       containers:
       - name: ms2
-        image: prasad0089/ms2:2
+        image: prasad0089/ms2:1
         ports:
         - containerPort: 5000
   strategy:
-    canary:
-      steps:
-      - setWeight: 33
-      - pause: {duration: 1m}
-      - setWeight: 66
-      - pause: {duration: 1m}
+    blueGreen:
+      activeService: ms2-service-live
+      previewService: ms2-service-preview
+      autoPromotionEnabled: false
+---
 ---
 apiVersion: v1
 kind: Service
