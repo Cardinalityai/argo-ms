@@ -1,316 +1,106 @@
 ---
-# UI Deployment
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: ui-v1
+  name: ms1-rollout
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ui
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: ui
-        version: v1
-    spec:
-      containers:
-      - name: ui
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: ui-config
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: ui-config
-        configMap:
-          name: ui-config
-
----
-# UI Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: ui-service
-spec:
-  selector:
-    app: ui
-    version: v1
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-
----
-# UI ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ui-config
-data:
-  index.html: |
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Microservices Dashboard</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-            .box { border: 1px solid #ddd; padding: 20px; }
-        </style>
-    </head>
-    <body>
-        <h1>Microservices Dashboard</h1>
-        <div class="grid">
-            <div class="box" id="ms1"></div>
-            <div class="box" id="ms2"></div>
-            <div class="box" id="ms3"></div>
-            <div class="box" id="ms4"></div>
-        </div>
-        <script>
-            const services = ['ms1', 'ms2', 'ms3', 'ms4'];
-
-            function fetchMS(ms) {
-                fetch('/' + ms)
-                    .then(response => response.text())
-                    .then(data => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>' + data + '</p>')
-                    .catch(error => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>Error: ' + error + '</p>');
-            }
-            
-            services.forEach(fetchMS);
-        </script>
-    </body>
-    </html>
-
----
-# MS1 Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ms1-v1
-spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: ms1
-      version: v1
   template:
     metadata:
       labels:
         app: ms1
-        version: v1
     spec:
       containers:
       - name: ms1
-        image: nginx:alpine
+        image: prasad0089/ms1:1
         ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: ms1-config
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: ms1-config
-        configMap:
-          name: ms1-config
-
+        - containerPort: 5000
+  strategy:
+    canary:
+      steps:
+      - setWeight: 33
+      - pause: {duration: 1m}
+      - setWeight: 66
+      - pause: {duration: 1m}
 ---
-# MS1 Service
-apiVersion: v1
-kind: Service
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: ms1-service
+  name: ms2-rollout
 spec:
-  selector:
-    app: ms1
-    version: v1
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-
----
-# MS1 ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ms1-config
-data:
-  index.html: |
-    This is ms1 v1
-
----
-# MS2 Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ms2-v1
-spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: ms2
-      version: v1
   template:
     metadata:
       labels:
         app: ms2
-        version: v1
     spec:
       containers:
       - name: ms2
-        image: nginx:alpine
+        image: prasad0089/ms2:1
         ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: ms2-config
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: ms2-config
-        configMap:
-          name: ms2-config
-
+        - containerPort: 5000
+  strategy:
+    canary:
+      steps:
+      - setWeight: 33
+      - pause: {duration: 1m}
+      - setWeight: 66
+      - pause: {duration: 1m}
 ---
-# MS2 Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: ms2-service
+  name: ms1-service-live
+spec:
+  selector:
+    app: ms1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms1-service-preview
+spec:
+  selector:
+    app: ms1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms2-service-live
 spec:
   selector:
     app: ms2
-    version: v1
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
-
+      targetPort: 5000
 ---
-# MS2 ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ms2-config
-data:
-  index.html: |
-    This is ms2 v1
-
----
-# MS3 Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ms3-v1
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ms3
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: ms3
-        version: v1
-    spec:
-      containers:
-      - name: ms3
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: ms3-config
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: ms3-config
-        configMap:
-          name: ms3-config
-
----
-# MS3 Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: ms3-service
+  name: ms2-service-preview
 spec:
   selector:
-    app: ms3
-    version: v1
+    app: ms2
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
-
+      targetPort: 5000
 ---
-# MS3 ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ms3-config
-data:
-  index.html: |
-    This is ms3 v1
-
----
-# MS4 Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ms4-v1
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ms4
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: ms4
-        version: v1
-    spec:
-      containers:
-      - name: ms4
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: ms4-config
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: ms4-config
-        configMap:
-          name: ms4-config
-
----
-# MS4 Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: ms4-service
-spec:
-  selector:
-    app: ms4
-    version: v1
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-
----
-# MS4 ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ms4-config
-data:
-  index.html: |
-    This is ms4 v1
-
----
-# Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -322,38 +112,32 @@ spec:
   rules:
   - http:
       paths:
-      - path: /()(.*)
+      - path: /live/ms1(/|$)(.*)
         pathType: Prefix
         backend:
           service:
-            name: ui-service
+            name: ms1-service-live
             port: 
               number: 80
-      - path: /ms1(/|$)(.*)
+      - path: /live/ms2(/|$)(.*)
         pathType: Prefix
         backend:
           service:
-            name: ms1-service
+            name: ms2-service-live
             port: 
               number: 80
-      - path: /ms2(/|$)(.*)
+      - path: /preview/ms1(/|$)(.*)
         pathType: Prefix
         backend:
           service:
-            name: ms2-service
+            name: ms1-service-preview
             port: 
               number: 80
-      - path: /ms3(/|$)(.*)
+      - path: /preview/ms2(/|$)(.*)
         pathType: Prefix
         backend:
           service:
-            name: ms3-service
+            name: ms2-service-preview
             port: 
               number: 80
-      - path: /ms4(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: ms4-service
-            port: 
-              number: 80
+---              
