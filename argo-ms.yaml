@@ -22,7 +22,7 @@ spec:
     blueGreen:
       activeService: ms1-service-live
       previewService: ms1-service-preview
-      autoPromotionEnabled: true
+      autoPromotionEnabled: false
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
