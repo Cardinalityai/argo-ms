@@ -1,5 +1,5 @@
 ---
-# UI v1 Deployment
+# UI Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,21 +16,41 @@ spec:
         app: ui
         version: v1
     spec:
+      initContainers:
+      - name: init-html
+        image: busybox
+        command: ['sh', '-c', 'envsubst < /tmp/html/index.html > /usr/share/nginx/html/index.html']
+        env:
+        - name: MS1_SERVICE_HOST
+          value: "ms1-service"
+        - name: MS2_SERVICE_HOST
+          value: "ms2-service"
+        - name: MS3_SERVICE_HOST
+          value: "ms3-service"
+        - name: MS4_SERVICE_HOST
+          value: "ms4-service"
+        volumeMounts:
+        - name: ui-config
+          mountPath: /tmp/html
+        - name: html
+          mountPath: /usr/share/nginx/html
       containers:
       - name: ui
         image: nginx:alpine
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: ui-config
+        - name: html
           mountPath: /usr/share/nginx/html
       volumes:
       - name: ui-config
         configMap:
           name: ui-config
+      - name: html
+        emptyDir: {}
 
 ---
-# UI v1 Service
+# UI Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -72,19 +92,27 @@ data:
             <div class="box" id="ms4"></div>
         </div>
         <script>
+            const services = {
+                ms1: 'http://' + '${MS1_SERVICE_HOST}',
+                ms2: 'http://' + '${MS2_SERVICE_HOST}',
+                ms3: 'http://' + '${MS3_SERVICE_HOST}',
+                ms4: 'http://' + '${MS4_SERVICE_HOST}'
+            };
+
             function fetchMS(ms) {
-                fetch('http://' + ms + '-service')
+                fetch(services[ms])
                     .then(response => response.text())
                     .then(data => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>' + data + '</p>')
                     .catch(error => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>Error: ' + error + '</p>');
             }
-            ['ms1', 'ms2', 'ms3', 'ms4'].forEach(fetchMS);
+            
+            Object.keys(services).forEach(fetchMS);
         </script>
     </body>
     </html>
 
 ---
-# MS1 v1 Deployment
+# MS1 Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -115,7 +143,7 @@ spec:
           name: ms1-config
 
 ---
-# MS1 v1 Service
+# MS1 Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -140,7 +168,7 @@ data:
     This is ms1 v1
 
 ---
-# MS2 v1 Deployment
+# MS2 Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -171,7 +199,7 @@ spec:
           name: ms2-config
 
 ---
-# MS2 v1 Service
+# MS2 Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -196,7 +224,7 @@ data:
     This is ms2 v1
 
 ---
-# MS3 v1 Deployment
+# MS3 Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -227,7 +255,7 @@ spec:
           name: ms3-config
 
 ---
-# MS3 v1 Service
+# MS3 Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -252,7 +280,7 @@ data:
     This is ms3 v1
 
 ---
-# MS4 v1 Deployment
+# MS4 Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -283,7 +311,7 @@ spec:
           name: ms4-config
 
 ---
-# MS4 v1 Service
+# MS4 Service
 apiVersion: v1
 kind: Service
 metadata:
