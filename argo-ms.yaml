@@ -1,0 +1,308 @@
+---
+# UI v1 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ui
+        version: v1
+    spec:
+      containers:
+      - name: ui
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ui-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: ui-config
+        configMap:
+          name: ui-config
+
+---
+# UI v1 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-service
+spec:
+  selector:
+    app: ui
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+---
+# UI ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ui-config
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Microservices Dashboard</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .box { border: 1px solid #ddd; padding: 20px; }
+        </style>
+    </head>
+    <body>
+        <h1>Microservices Dashboard</h1>
+        <div class="grid">
+            <div class="box" id="ms1"></div>
+            <div class="box" id="ms2"></div>
+            <div class="box" id="ms3"></div>
+            <div class="box" id="ms4"></div>
+        </div>
+        <script>
+            function fetchMS(ms) {
+                fetch('http://' + ms + '-service')
+                    .then(response => response.text())
+                    .then(data => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>' + data + '</p>')
+                    .catch(error => document.getElementById(ms).innerHTML = '<h2>' + ms.toUpperCase() + '</h2><p>Error: ' + error + '</p>');
+            }
+            ['ms1', 'ms2', 'ms3', 'ms4'].forEach(fetchMS);
+        </script>
+    </body>
+    </html>
+
+---
+# MS1 v1 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms1-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms1
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ms1
+        version: v1
+    spec:
+      containers:
+      - name: ms1
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ms1-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: ms1-config
+        configMap:
+          name: ms1-config
+
+---
+# MS1 v1 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms1-service
+spec:
+  selector:
+    app: ms1
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# MS1 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ms1-config
+data:
+  index.html: |
+    This is ms1 v1
+
+---
+# MS2 v1 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms2-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms2
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ms2
+        version: v1
+    spec:
+      containers:
+      - name: ms2
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ms2-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: ms2-config
+        configMap:
+          name: ms2-config
+
+---
+# MS2 v1 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms2-service
+spec:
+  selector:
+    app: ms2
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# MS2 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ms2-config
+data:
+  index.html: |
+    This is ms2 v1
+
+---
+# MS3 v1 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms3-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms3
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ms3
+        version: v1
+    spec:
+      containers:
+      - name: ms3
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ms3-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: ms3-config
+        configMap:
+          name: ms3-config
+
+---
+# MS3 v1 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms3-service
+spec:
+  selector:
+    app: ms3
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# MS3 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ms3-config
+data:
+  index.html: |
+    This is ms3 v1
+
+---
+# MS4 v1 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms4-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms4
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ms4
+        version: v1
+    spec:
+      containers:
+      - name: ms4
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ms4-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: ms4-config
+        configMap:
+          name: ms4-config
+
+---
+# MS4 v1 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms4-service
+spec:
+  selector:
+    app: ms4
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# MS4 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ms4-config
+data:
+  index.html: |
+    This is ms4 v1
