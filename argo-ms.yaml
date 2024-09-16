@@ -108,34 +108,44 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  - http:
+  - host: ga-smm-ms-live.cardinality.info
+    http:
       paths:
-      - path: /live/ms1(/|$)(.*)
+      - path: /ms1(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: ms1-service-live
-            port: 
+            port:
               number: 80
-      - path: /live/ms2(/|$)(.*)
+      - path: /ms2(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: ms2-service-live
-            port: 
+            port:
               number: 80
-      - path: /preview/ms1(/|$)(.*)
+  - host: ga-smm-ms-preview.cardinality.info
+    http:
+      paths:
+      - path: /ms1(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: ms1-service-preview
-            port: 
+            port:
               number: 80
-      - path: /preview/ms2(/|$)(.*)
+      - path: /ms2(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: ms2-service-preview
-            port: 
+            port:
               number: 80
+  tls:
+  - hosts:
+    - ga-smm-ms-live.cardinality.info
+    - ga-smm-ms-preview.cardinality.info
+    secretName: info
+
 ---              
